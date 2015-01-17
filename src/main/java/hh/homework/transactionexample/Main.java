@@ -17,7 +17,7 @@ class Main {
 
     public static void main(final String[] args) throws Exception {
         final SessionFactory sessionFactory = HibernateUtils
-                .buildSessionFactory(HibernateUtils.configurationWithAuth());
+                .buildSessionFactory(HibernateUtils.getProdConfig());
 
         try {
             if (args.length > 0 && "reinit".equals(args[0]))

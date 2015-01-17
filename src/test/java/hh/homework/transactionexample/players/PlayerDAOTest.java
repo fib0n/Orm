@@ -3,7 +3,6 @@ package hh.homework.transactionexample.players;
 import hh.homework.transactionexample.HibernateUtils;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
-import org.hibernate.cfg.Configuration;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -18,16 +17,9 @@ public class PlayerDAOTest {
     private static SessionFactory sessionFactory;
     private static PlayerDAO dao;
 
-    private static Configuration hibernateTestConfig() {
-        return HibernateUtils.configuration
-                //.setProperty("hibernate.connection.autocommit", "true")
-                .setProperty("hibernate.connection.driver_class", "org.h2.Driver")
-                .setProperty("hibernate.connection.url", "jdbc:h2:mem:test");
-    }
-
     @BeforeClass
     public static void init() throws Exception {
-        sessionFactory = HibernateUtils.buildSessionFactory(hibernateTestConfig());
+        sessionFactory = HibernateUtils.buildSessionFactory(HibernateUtils.getTestConfig());
         HibernateUtils.initDb(sessionFactory.getCurrentSession());
         dao = new PlayerDAO(sessionFactory);
     }
