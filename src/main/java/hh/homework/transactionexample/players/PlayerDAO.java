@@ -41,6 +41,6 @@ public class PlayerDAO implements EntityDAO<Player> {
     }
 
     private Session session() {
-        return this.sessionFactory.getCurrentSession();
+        return sessionFactory.getCurrentSession();
     }
 }

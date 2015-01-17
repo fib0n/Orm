@@ -24,23 +24,23 @@ public class Club {
     }
 
     public int getId() {
-        return this.id;
+        return id;
     }
 
     public boolean isNew() {
-        return this.id <= 0;
+        return id <= 0;
     }
 
     public Club withName(final String name) {
-        return new Club(this.id, name, this.balance);
+        return new Club(id, name, balance);
     }
 
     public Club withBalance(final BigDecimal balance) {
-        return new Club(this.id, this.name, balance);
+        return new Club(id, name, balance);
     }
 
     public Club changeBalance(final BigDecimal delta) {
-        return withBalance(this.balance.add(delta));
+        return withBalance(balance.add(delta));
     }
 
     @Override
@@ -49,19 +49,19 @@ public class Club {
         if (that == null || getClass() != that.getClass()) return false;
 
         final Club club = (Club) that;
-        return this.id == club.id && !this.isNew();
+        return id == club.id && !isNew();
     }
 
     @Override
     public int hashCode() {
-        return this.id;
+        return id;
     }
 
     @Override
     public String toString() {
         return String.format(
                 "%s{id=%d, name='%s', balance='%s'}",
-                getClass().getSimpleName(), this.id, this.name, balance.toPlainString()
+                getClass().getSimpleName(), id, name, balance.toPlainString()
         );
     }
 }

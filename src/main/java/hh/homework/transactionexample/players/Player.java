@@ -19,7 +19,7 @@ public class Player {
     public final BigDecimal price;
 
     public Player(final int clubId, final String name, final BigDecimal price) {
-        this.id = 0;
+        id = 0;
         this.clubId = clubId;
         this.name = name;
         this.price = price;
@@ -34,14 +34,14 @@ public class Player {
 
     @Deprecated
     Player() {
-        this.id = -1;
-        this.clubId = -1;
-        this.name = "";
-        this.price = new BigDecimal(0);
+        id = -1;
+        clubId = -1;
+        name = "";
+        price = new BigDecimal(0);
     }
 
     public Player withClub(final int clubId) {
-        return new Player(this.id, clubId, this.name, this.price);
+        return new Player(id, clubId, name, price);
     }
 
     @Override
@@ -50,19 +50,19 @@ public class Player {
         if (that == null || getClass() != that.getClass()) return false;
 
         final Player player = (Player) that;
-        return this.id == player.id && this.id > 0;
+        return id == player.id && id > 0;
     }
 
     @Override
     public int hashCode() {
-        return this.id;
+        return id;
     }
 
     @Override
     public String toString() {
         return String.format(
                 "%s{id=%d, clubId=%d, name='%s', price='%s'}",
-                getClass().getSimpleName(), this.id, this.clubId, this.name, price.toPlainString()
+                getClass().getSimpleName(), id, clubId, name, price.toPlainString()
         );
     }
 }

@@ -112,7 +112,7 @@ public class ClubDAO implements EntityDAO<Club> {
     }
 
     private <R> R dbConnect(final Function<Connection, R> func, final String exceptionMessage) {
-        if (this.connection != null)
+        if (connection != null)
             return func.apply(connection);
 
         try (Connection connection = dataSource.getConnection()) {

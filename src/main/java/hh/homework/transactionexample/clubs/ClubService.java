@@ -28,19 +28,19 @@ public class ClubService {
 
     public Boolean SellPlayer(final int playerId, final int clubCustomerId) {
         return inTransaction(() -> {
-            final Optional<Player> playerMaybe = this.playerService.get(playerId);
+            final Optional<Player> playerMaybe = playerService.get(playerId);
 
             if (!playerMaybe.isPresent())
                 return false;
 
             final Player player = playerMaybe.get();
-            final Club clubOwner = this.clubDAO.get(player.clubId)
+            final Club clubOwner = clubDAO.get(player.clubId)
                     .orElseThrow(() -> new RuntimeException("The player belongs to a non-existent club"));
 
             if (clubOwner.getId() == clubCustomerId)
                 return false;
 
-            final Optional<Club> clubCustomerMaybe = this.clubDAO.get(clubCustomerId);
+            final Optional<Club> clubCustomerMaybe = clubDAO.get(clubCustomerId);
             if (!clubCustomerMaybe.isPresent())
                 return false;
 
@@ -51,12 +51,12 @@ public class ClubService {
 
             //use doWork for jdbc and hibernate in one transaction
             session().doWork(connection -> {
-                this.clubDAO.setConnection(connection);  //dirty-dirty hack =(
-                this.clubDAO.addOrUpdate(clubOwner.changeBalance(amount));
-                this.clubDAO.addOrUpdate(clubCustomer.changeBalance(amount.negate()));
-                this.clubDAO.setConnection(null);
+                clubDAO.setConnection(connection);  //dirty-dirty hack =(
+                clubDAO.addOrUpdate(clubOwner.changeBalance(amount));
+                clubDAO.addOrUpdate(clubCustomer.changeBalance(amount.negate()));
+                clubDAO.setConnection(null);
             });
-            this.playerService.changeClub(player, clubCustomerId);
+            playerService.changeClub(player, clubCustomerId);
 
             return true;
         });
@@ -75,6 +75,6 @@ public class ClubService {
     }
 
     private Session session() {
-        return this.sessionFactory.getCurrentSession();
+        return sessionFactory.getCurrentSession();
     }
 }
