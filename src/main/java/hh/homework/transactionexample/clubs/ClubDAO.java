@@ -17,22 +17,22 @@ import static com.google.common.base.Preconditions.checkNotNull;
  */
 public class ClubDAO implements EntityDAO<Club> {
     private final DataSource dataSource;
-    private Connection connection;
+    private Connection connectionOnlyForTransaction;
 
     public ClubDAO(final DataSource dataSource) {
         this.dataSource = checkNotNull(dataSource);
     }
 
     void setConnection(final Connection connection) {
-        this.connection = connection;
+        this.connectionOnlyForTransaction = connection;
     }
 
     @Override
     public Optional<Club> get(final int id) {
         final String exceptionMessage = "failed to get " + id;
-        return dbConnect(cn -> {
+        return dbConnect(connection -> {
             final String query = "SELECT id, name, balance FROM clubs WHERE id = ?";
-            try (final PreparedStatement statement = cn.prepareStatement(query)) {
+            try (final PreparedStatement statement = connection.prepareStatement(query)) {
 
                 statement.setInt(1, id);
 
@@ -51,15 +51,20 @@ public class ClubDAO implements EntityDAO<Club> {
 
     @Override
     public Club addOrUpdate(final Club club) {
-        return club.isNew() ? insert(club) : update(club); //hacked dispatching
+        if (club.isNew()) //hacked dispatching
+            return insert(club);
+        else {
+            update(club);
+            return club;
+        }
     }
 
     @Override
     public void delete(final int id) {
         final String exceptionMessage = "failed to remove club by id" + id;
-        dbConnect(cn -> {
+        dbConnect(connection -> {
             final String query = "DELETE FROM clubs WHERE id = ?";
-            try (final PreparedStatement statement = cn.prepareStatement(query)) {
+            try (final PreparedStatement statement = connection.prepareStatement(query)) {
 
                 statement.setInt(1, id);
 
@@ -73,10 +78,10 @@ public class ClubDAO implements EntityDAO<Club> {
 
     private Club insert(final Club newClub) {
         final String exceptionMessage = "failed to insert " + newClub;
-        return dbConnect(cn -> {
+        return dbConnect(connection -> {
             final String query = "INSERT INTO clubs (name, balance) VALUES (?, ?)";
             try (final PreparedStatement statement =
-                         cn.prepareStatement(query, PreparedStatement.RETURN_GENERATED_KEYS)) {
+                         connection.prepareStatement(query, PreparedStatement.RETURN_GENERATED_KEYS)) {
 
                 statement.setString(1, newClub.name);
                 statement.setBigDecimal(2, newClub.balance);
@@ -93,11 +98,11 @@ public class ClubDAO implements EntityDAO<Club> {
         }, exceptionMessage);
     }
 
-    private Club update(final Club club) {
+    private void update(final Club club) {
         final String exceptionMessage = "failed to update " + club;
-        return dbConnect(cn -> {
+        dbConnect(connection -> {
             final String query = "UPDATE clubs SET name = ?, balance = ? WHERE id = ?";
-            try (final PreparedStatement statement = cn.prepareStatement(query)) {
+            try (final PreparedStatement statement = connection.prepareStatement(query)) {
 
                 statement.setString(1, club.name);
                 statement.setBigDecimal(2, club.balance);
@@ -112,8 +117,8 @@ public class ClubDAO implements EntityDAO<Club> {
     }
 
     private <R> R dbConnect(final Function<Connection, R> func, final String exceptionMessage) {
-        if (connection != null)
-            return func.apply(connection);
+        if (connectionOnlyForTransaction != null)
+            return func.apply(connectionOnlyForTransaction);
 
         try (Connection connection = dataSource.getConnection()) {
             return func.apply(connection);

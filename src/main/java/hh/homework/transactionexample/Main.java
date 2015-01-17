@@ -27,8 +27,10 @@ class Main {
                     sessionFactory,
                     new ClubDAO(buildDataSource()),
                     new PlayerService(new PlayerDAO(sessionFactory)));
-            final boolean result = clubService.SellPlayer(4, 1);
-            System.out.println(result);
+            clubService.SellPlayer(4, 1);
+            System.out.println("Игрок успешно продан");
+        } catch (Exception e) {
+            e.printStackTrace();
         } finally {
             sessionFactory.close();
         }

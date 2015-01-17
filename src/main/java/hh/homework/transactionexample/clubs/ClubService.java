@@ -26,8 +26,8 @@ public class ClubService {
         this.playerService = checkNotNull(playerService);
     }
 
-    public Boolean SellPlayer(final int playerId, final int clubCustomerId) {
-        return inTransaction(() -> {
+    public void SellPlayer(final int playerId, final int clubCustomerId) {
+        inTransaction(() -> {
             final Optional<Player> playerMaybe = playerService.get(playerId);
 
             if (!playerMaybe.isPresent())
@@ -35,43 +35,43 @@ public class ClubService {
 
             final Player player = playerMaybe.get();
             final Club clubOwner = clubDAO.get(player.clubId)
-                    .orElseThrow(() -> new RuntimeException("The player belongs to a non-existent club"));
+                    .orElseThrow(() -> new RuntimeException("Игрок принадлежит несуществующему клубу"));
 
             if (clubOwner.getId() == clubCustomerId)
-                return false;
+                throw new RuntimeException("Игрок уже и так в этом клубе");
 
             final Optional<Club> clubCustomerMaybe = clubDAO.get(clubCustomerId);
             if (!clubCustomerMaybe.isPresent())
-                return false;
+                throw new RuntimeException("Не существует клуба, который хочет купить игрока");
 
             final Club clubCustomer = clubCustomerMaybe.get();
             final BigDecimal amount = player.price;
             if (clubCustomer.balance.compareTo(amount) < 0)
-                return false;
+                throw new RuntimeException("Не хватает денег на счете для покупки игрока");
 
-            //use doWork for jdbc and hibernate in one transaction
-            session().doWork(connection -> {
-                clubDAO.setConnection(connection);  //dirty-dirty hack =(
-                clubDAO.addOrUpdate(clubOwner.changeBalance(amount));
-                clubDAO.addOrUpdate(clubCustomer.changeBalance(amount.negate()));
-                clubDAO.setConnection(null);
-            });
+            clubDAO.addOrUpdate(clubOwner.changeBalance(amount));
+            clubDAO.addOrUpdate(clubCustomer.changeBalance(amount.negate()));
             playerService.changeClub(player, clubCustomerId);
 
             return true;
         });
     }
 
-    private boolean inTransaction(final BooleanSupplier supplier) {
+    private void inTransaction(final BooleanSupplier supplier) {
         final Transaction transaction = session().beginTransaction();
-        try {
-            final boolean result = supplier.getAsBoolean();
-            transaction.commit();
-            return result;
-        } catch (RuntimeException e) {
-            transaction.rollback();
-            throw e;
-        }
+        //use doReturningWork for jdbc and hibernate in one transaction
+        session().doWork(connection -> {
+            clubDAO.setConnection(connection);   //dirty-dirty hack =(
+            try {
+                supplier.getAsBoolean();
+                transaction.commit();
+            } catch (RuntimeException e) {
+                transaction.rollback();
+                throw e;
+            } finally {
+                clubDAO.setConnection(null);
+            }
+        });
     }
 
     private Session session() {
