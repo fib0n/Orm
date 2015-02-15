@@ -35,7 +35,7 @@ public class Club {
         return new Club(id, name, balance);
     }
 
-    public Club withBalance(final BigDecimal balance) {
+    Club withBalance(final BigDecimal balance) {
         return new Club(id, name, balance);
     }
 

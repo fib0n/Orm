@@ -11,7 +11,7 @@ import java.nio.charset.Charset;
 /**
  * Created by fib on 04/01/15.
  */
-public class ResourceUtils {
+class ResourceUtils {
     private ResourceUtils() {
     }
 

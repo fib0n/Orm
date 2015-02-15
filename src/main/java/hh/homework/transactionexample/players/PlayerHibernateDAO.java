@@ -4,6 +4,7 @@ import hh.homework.transactionexample.common.EntityDAO;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 
+import javax.inject.Inject;
 import java.util.Optional;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -11,10 +12,11 @@ import static com.google.common.base.Preconditions.checkNotNull;
 /**
  * Created by fib on 04/01/15.
  */
-public class PlayerDAO implements EntityDAO<Player> {
+public class PlayerHibernateDAO implements EntityDAO<Player> {
     private final SessionFactory sessionFactory;
 
-    public PlayerDAO(final SessionFactory sessionFactory) {
+    @Inject
+    public PlayerHibernateDAO(final SessionFactory sessionFactory) {
         this.sessionFactory = checkNotNull(sessionFactory);
     }
 

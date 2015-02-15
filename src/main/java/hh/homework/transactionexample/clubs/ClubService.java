@@ -1,11 +1,13 @@
 package hh.homework.transactionexample.clubs;
 
+import hh.homework.transactionexample.common.EntityDAO;
 import hh.homework.transactionexample.players.Player;
 import hh.homework.transactionexample.players.PlayerService;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
 
+import javax.inject.Inject;
 import java.math.BigDecimal;
 import java.util.Optional;
 import java.util.function.BooleanSupplier;
@@ -17,10 +19,11 @@ import static com.google.common.base.Preconditions.checkNotNull;
  */
 public class ClubService {
     private final SessionFactory sessionFactory;
-    private final ClubDAO clubDAO;
+    private final EntityDAO<Club> clubDAO;
     private final PlayerService playerService;
 
-    public ClubService(final SessionFactory sessionFactory, final ClubDAO clubDAO, final PlayerService playerService) {
+    @Inject
+    public ClubService(final SessionFactory sessionFactory, final EntityDAO<Club> clubDAO, final PlayerService playerService) {
         this.sessionFactory = checkNotNull(sessionFactory);
         this.clubDAO = checkNotNull(clubDAO);
         this.playerService = checkNotNull(playerService);
@@ -61,7 +64,8 @@ public class ClubService {
         final Transaction transaction = session().beginTransaction();
         //use doReturningWork for jdbc and hibernate in one transaction
         session().doWork(connection -> {
-            clubDAO.setConnection(connection);   //dirty-dirty hack =(
+            if (clubDAO instanceof ClubJDBCDAO)
+                ((ClubJDBCDAO) clubDAO).setConnection(connection);   //dirty-dirty hack =(
             try {
                 supplier.getAsBoolean();
                 transaction.commit();
@@ -69,7 +73,8 @@ public class ClubService {
                 transaction.rollback();
                 throw e;
             } finally {
-                clubDAO.setConnection(null);
+                if (clubDAO instanceof ClubJDBCDAO)
+                    ((ClubJDBCDAO) clubDAO).setConnection(null);
             }
         });
     }

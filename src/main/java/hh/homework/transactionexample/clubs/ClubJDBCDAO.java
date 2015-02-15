@@ -2,6 +2,7 @@ package hh.homework.transactionexample.clubs;
 
 import hh.homework.transactionexample.common.EntityDAO;
 
+import javax.inject.Inject;
 import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -15,11 +16,12 @@ import static com.google.common.base.Preconditions.checkNotNull;
 /**
  * Created by fib on 04/01/15.
  */
-public class ClubDAO implements EntityDAO<Club> {
+public class ClubJDBCDAO implements EntityDAO<Club> {
     private final DataSource dataSource;
     private Connection connectionOnlyForTransaction;
 
-    public ClubDAO(final DataSource dataSource) {
+    @Inject
+    public ClubJDBCDAO(final DataSource dataSource) {
         this.dataSource = checkNotNull(dataSource);
     }
 

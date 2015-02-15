@@ -1,6 +1,11 @@
 package hh.homework.transactionexample.players;
 
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+import com.google.inject.util.Modules;
 import hh.homework.transactionexample.HibernateUtils;
+import hh.homework.transactionexample.IocModule;
+import hh.homework.transactionexample.IocTestModule;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
 import org.junit.AfterClass;
@@ -13,15 +18,16 @@ import java.util.function.Supplier;
 
 import static org.junit.Assert.*;
 
-public class PlayerDAOTest {
+public class PlayerHibernateDAOTest {
     private static SessionFactory sessionFactory;
-    private static PlayerDAO dao;
+    private static PlayerHibernateDAO dao;
 
     @BeforeClass
     public static void init() throws Exception {
-        sessionFactory = HibernateUtils.buildSessionFactory(HibernateUtils.getTestConfig());
+        final Injector injector = Guice.createInjector(Modules.override(new IocModule()).with(new IocTestModule()));
+        sessionFactory = injector.getInstance(SessionFactory.class);
         HibernateUtils.initDb(sessionFactory.getCurrentSession());
-        dao = new PlayerDAO(sessionFactory);
+        dao = injector.getInstance(PlayerHibernateDAO.class);
     }
 
     @AfterClass

@@ -1,35 +1,27 @@
 package hh.homework.transactionexample.clubs;
 
-import hh.homework.transactionexample.ResourceUtils;
-import org.h2.jdbcx.JdbcDataSource;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+import com.google.inject.util.Modules;
+import hh.homework.transactionexample.IocModule;
+import hh.homework.transactionexample.IocTestModule;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.math.BigDecimal;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.Statement;
 import java.util.Optional;
 
 import static org.junit.Assert.*;
 
 
-public class ClubDAOTest {
+public class ClubJDBCDAOTest {
 
-    private static ClubDAO dao;
+    private static ClubJDBCDAO dao;
 
     @BeforeClass
     public static void init() throws Exception {
-        final String dbPath = "jdbc:h2:mem:test;DB_CLOSE_DELAY=-1"; //keep connect
-        try (final Connection conn = DriverManager.getConnection(dbPath);
-             final Statement stat = conn.createStatement()) {
-            stat.execute(ResourceUtils.read("schema.sql"));
-            stat.execute(ResourceUtils.read("data.sql"));
-
-            final JdbcDataSource dataSource = new JdbcDataSource();
-            dataSource.setURL(dbPath);
-            dao = new ClubDAO(dataSource);
-        }
+        final Injector injector = Guice.createInjector(Modules.override(new IocModule()).with(new IocTestModule()));
+        dao = injector.getInstance(ClubJDBCDAO.class);
     }
 
     @Test
