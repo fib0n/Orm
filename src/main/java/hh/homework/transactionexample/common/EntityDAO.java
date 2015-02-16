@@ -8,7 +8,9 @@ import java.util.Optional;
 public interface EntityDAO<T> {
     Optional<T> get(final int id);
 
-    T addOrUpdate(final T entity);
+    T insert(final T entity);
+
+    void update(final T entity);
 
     void delete(final int id);
 }

@@ -52,16 +52,6 @@ public class ClubJDBCDAO implements EntityDAO<Club> {
     }
 
     @Override
-    public Club addOrUpdate(final Club club) {
-        if (club.isNew()) //hacked dispatching
-            return insert(club);
-        else {
-            update(club);
-            return club;
-        }
-    }
-
-    @Override
     public void delete(final int id) {
         final String exceptionMessage = "failed to remove club by id" + id;
         dbConnect(connection -> {
@@ -78,7 +68,7 @@ public class ClubJDBCDAO implements EntityDAO<Club> {
         }, exceptionMessage);
     }
 
-    private Club insert(final Club newClub) {
+    public Club insert(final Club newClub) {
         final String exceptionMessage = "failed to insert " + newClub;
         return dbConnect(connection -> {
             final String query = "INSERT INTO clubs (name, balance) VALUES (?, ?)";
@@ -100,7 +90,7 @@ public class ClubJDBCDAO implements EntityDAO<Club> {
         }, exceptionMessage);
     }
 
-    private void update(final Club club) {
+    public void update(final Club club) {
         final String exceptionMessage = "failed to update " + club;
         dbConnect(connection -> {
             final String query = "UPDATE clubs SET name = ?, balance = ? WHERE id = ?";

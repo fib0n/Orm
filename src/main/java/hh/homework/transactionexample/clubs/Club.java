@@ -27,10 +27,6 @@ public class Club {
         return id;
     }
 
-    public boolean isNew() {
-        return id <= 0;
-    }
-
     public Club withName(final String name) {
         return new Club(id, name, balance);
     }
@@ -49,7 +45,7 @@ public class Club {
         if (that == null || getClass() != that.getClass()) return false;
 
         final Club club = (Club) that;
-        return id == club.id && !isNew();
+        return id == club.id && club.id > 0;
     }
 
     @Override

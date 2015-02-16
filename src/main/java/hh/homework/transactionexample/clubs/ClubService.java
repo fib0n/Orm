@@ -10,7 +10,6 @@ import org.hibernate.Transaction;
 import javax.inject.Inject;
 import java.math.BigDecimal;
 import java.util.Optional;
-import java.util.function.BooleanSupplier;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -30,44 +29,41 @@ public class ClubService {
     }
 
     public void SellPlayer(final int playerId, final int clubCustomerId) {
-        inTransaction(() -> {
-            final Optional<Player> playerMaybe = playerService.get(playerId);
+        inTransaction(
+                () -> {
+                    final Player player = playerService.get(playerId)
+                            .orElseThrow(() -> new RuntimeException("Игрок не найден"));
 
-            if (!playerMaybe.isPresent())
-                return false;
+                    final Club clubOwner = clubDAO.get(player.clubId)
+                            .orElseThrow(() -> new RuntimeException("Игрок принадлежит несуществующему клубу"));
 
-            final Player player = playerMaybe.get();
-            final Club clubOwner = clubDAO.get(player.clubId)
-                    .orElseThrow(() -> new RuntimeException("Игрок принадлежит несуществующему клубу"));
+                    if (clubOwner.getId() == clubCustomerId)
+                        throw new RuntimeException("Игрок уже и так в этом клубе");
 
-            if (clubOwner.getId() == clubCustomerId)
-                throw new RuntimeException("Игрок уже и так в этом клубе");
+                    final Optional<Club> clubCustomerMaybe = clubDAO.get(clubCustomerId);
+                    if (!clubCustomerMaybe.isPresent())
+                        throw new RuntimeException("Не существует клуба, который хочет купить игрока");
 
-            final Optional<Club> clubCustomerMaybe = clubDAO.get(clubCustomerId);
-            if (!clubCustomerMaybe.isPresent())
-                throw new RuntimeException("Не существует клуба, который хочет купить игрока");
+                    final Club clubCustomer = clubCustomerMaybe.get();
+                    final BigDecimal amount = player.price;
+                    if (clubCustomer.balance.compareTo(amount) < 0)
+                        throw new RuntimeException("Не хватает денег на счете для покупки игрока");
 
-            final Club clubCustomer = clubCustomerMaybe.get();
-            final BigDecimal amount = player.price;
-            if (clubCustomer.balance.compareTo(amount) < 0)
-                throw new RuntimeException("Не хватает денег на счете для покупки игрока");
-
-            clubDAO.addOrUpdate(clubOwner.changeBalance(amount));
-            clubDAO.addOrUpdate(clubCustomer.changeBalance(amount.negate()));
-            playerService.changeClub(player, clubCustomerId);
-
-            return true;
-        });
+                    clubDAO.update(clubOwner.changeBalance(amount));
+                    clubDAO.update(clubCustomer.changeBalance(amount.negate()));
+                    playerService.changeClub(player, clubCustomerId);
+                }
+        );
     }
 
-    private void inTransaction(final BooleanSupplier supplier) {
+    private void inTransaction(final Runnable runnable) {
         final Transaction transaction = session().beginTransaction();
         //use doReturningWork for jdbc and hibernate in one transaction
         session().doWork(connection -> {
             if (clubDAO instanceof ClubJDBCDAO)
                 ((ClubJDBCDAO) clubDAO).setConnection(connection);   //dirty-dirty hack =(
             try {
-                supplier.getAsBoolean();
+                runnable.run();
                 transaction.commit();
             } catch (RuntimeException e) {
                 transaction.rollback();

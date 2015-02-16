@@ -21,8 +21,12 @@ import java.sql.SQLException;
 public class IocModule extends AbstractModule {
     @Override
     protected void configure() {
-        bind(new TypeLiteral<EntityDAO<Club>>() {}).to(new TypeLiteral<ClubJDBCDAO>() {});
-        bind(new TypeLiteral<EntityDAO<Player>>() {}).to(new TypeLiteral<PlayerHibernateDAO>() {});
+        bind(new TypeLiteral<EntityDAO<Club>>() {
+        }).to(new TypeLiteral<ClubJDBCDAO>() {
+        });
+        bind(new TypeLiteral<EntityDAO<Player>>() {
+        }).to(new TypeLiteral<PlayerHibernateDAO>() {
+        });
     }
 
     @Provides

@@ -33,16 +33,17 @@ public class ClubJDBCDAOTest {
     }
 
     @Test
-    public void testAddOrUpdate() throws Exception {
+    public void testInsertAndUpdate() throws Exception {
         Club club = new Club("ЦСКА", new BigDecimal(1000));
-        club = dao.addOrUpdate(club);
-        assertTrue(!club.isNew());
+        club = dao.insert(club);
+        assertTrue(club.getId() > 0);
 
         final String newName = "Динамо";
         final Club clubToUpdate = club.withName(newName);
-        final Club clubUpdated = dao.addOrUpdate(clubToUpdate);
-        assertEquals(clubToUpdate.getId(), clubUpdated.getId());
-        assertEquals(clubUpdated.name, newName);
+        final int id = clubToUpdate.getId();
+        dao.update(clubToUpdate);
+        assertEquals(clubToUpdate.getId(), id);
+        assertEquals(clubToUpdate.name, newName);
     }
 
     @Test

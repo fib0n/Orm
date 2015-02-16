@@ -19,7 +19,7 @@ public class HibernateUtils {
     private HibernateUtils() {
     }
 
-    private static Configuration getConfiguration() {
+    public static Configuration getConfiguration() {
         return new Configuration().addAnnotatedClass(Player.class);
     }
 
@@ -29,12 +29,6 @@ public class HibernateUtils {
                 .setProperty("hibernate.connection.url", DatabaseConfig.url)
                 .setProperty("hibernate.connection.username", DatabaseConfig.user)
                 .setProperty("hibernate.connection.password", DatabaseConfig.password);
-    }
-
-    public static Configuration getTestConfig() {
-        return getConfiguration()
-                .setProperty("hibernate.connection.driver_class", "org.h2.Driver")
-                .setProperty("hibernate.connection.url", "jdbc:h2:mem:test");
     }
 
     public static SessionFactory buildSessionFactory(final Configuration configuration) {

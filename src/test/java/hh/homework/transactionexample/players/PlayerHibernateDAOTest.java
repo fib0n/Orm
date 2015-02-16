@@ -48,19 +48,19 @@ public class PlayerHibernateDAOTest {
     }
 
     @Test
-    public void testAddOrUpdate() throws Exception {
+    public void testInsertAndUpdate() throws Exception {
         final Player player = inTransaction(() -> {
             final Player _player = new Player(2, "Ребров", new BigDecimal(1000000));
-            dao.addOrUpdate(_player);
-            return _player;
+            return dao.insert(_player);
         });
+
         final int playerId = player.id;
         assertTrue(playerId > 0);
 
         final int newClubId = 1;
         final Player playerToUpdate = player.withClub(newClubId);
         final Player playerUpdated = inTransaction(() -> {
-            dao.addOrUpdate(playerToUpdate);
+            dao.update(playerToUpdate);
             final Optional<Player> _playerMaybe = dao.get(playerId);
             assertTrue(_playerMaybe.isPresent());
             return _playerMaybe.get();

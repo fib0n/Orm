@@ -4,6 +4,7 @@ import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 import org.h2.jdbcx.JdbcDataSource;
 import org.hibernate.SessionFactory;
+import org.hibernate.cfg.Configuration;
 
 import javax.inject.Singleton;
 import javax.sql.DataSource;
@@ -22,11 +23,18 @@ public class IocTestModule extends AbstractModule {
     protected void configure() {
     }
 
+    private static Configuration getTestConfig() {
+        return HibernateUtils
+                .getConfiguration()
+                .setProperty("hibernate.connection.driver_class", "org.h2.Driver")
+                .setProperty("hibernate.connection.url", "jdbc:h2:mem:test");
+    }
+
     @Provides
     @Singleton
     SessionFactory provideSessionFactory() {
         return HibernateUtils
-                .buildSessionFactory(HibernateUtils.getTestConfig());
+                .buildSessionFactory(getTestConfig());
     }
 
     @Provides

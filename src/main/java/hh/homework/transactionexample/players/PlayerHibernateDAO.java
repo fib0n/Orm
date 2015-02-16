@@ -27,12 +27,14 @@ public class PlayerHibernateDAO implements EntityDAO<Player> {
     }
 
     @Override
-    public Player addOrUpdate(final Player player) {
-        if (player.id > 0)
-            session().merge(player);
-        else
-            session().save(player);
+    public Player insert(final Player player) {
+        session().save(player);
         return player;
+    }
+
+    @Override
+    public void update(final Player player) {
+        session().merge(player);
     }
 
     @Override

@@ -23,6 +23,6 @@ public class PlayerService {
     }
 
     public void changeClub(final Player player, final int clubId) {
-        playerDAO.addOrUpdate(player.withClub(clubId));
+        playerDAO.update(player.withClub(clubId));
     }
 }
