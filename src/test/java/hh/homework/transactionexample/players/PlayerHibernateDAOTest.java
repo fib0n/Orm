@@ -7,14 +7,12 @@ import hh.homework.transactionexample.HibernateUtils;
 import hh.homework.transactionexample.IocModule;
 import hh.homework.transactionexample.IocTestModule;
 import org.hibernate.SessionFactory;
-import org.hibernate.Transaction;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.math.BigDecimal;
 import java.util.Optional;
-import java.util.function.Supplier;
 
 import static org.junit.Assert.*;
 
@@ -39,32 +37,23 @@ public class PlayerHibernateDAOTest {
     @Test
     public void testGet() throws Exception {
         int id = 1;
-        inTransaction(() -> {
-            Optional<Player> playerMaybe = dao.get(id);
-            assertTrue(playerMaybe.isPresent());
-            assertEquals(playerMaybe.get().id, id);
-            return Optional.empty();
-        });
+        Optional<Player> playerMaybe = dao.get(id);
+        assertTrue(playerMaybe.isPresent());
+        assertEquals(playerMaybe.get().id, id);
     }
 
     @Test
     public void testInsertAndUpdate() throws Exception {
-        final Player player = inTransaction(() -> {
-            final Player _player = new Player(2, "Ребров", new BigDecimal(1000000));
-            return dao.insert(_player);
-        });
-
+        final Player player = dao.insert(new Player(2, "Ребров", new BigDecimal(1000000)));
         final int playerId = player.id;
         assertTrue(playerId > 0);
 
         final int newClubId = 1;
         final Player playerToUpdate = player.withClub(newClubId);
-        final Player playerUpdated = inTransaction(() -> {
-            dao.update(playerToUpdate);
-            final Optional<Player> _playerMaybe = dao.get(playerId);
-            assertTrue(_playerMaybe.isPresent());
-            return _playerMaybe.get();
-        });
+        dao.update(playerToUpdate);
+        final Optional<Player> _playerMaybe = dao.get(playerId);
+        assertTrue(_playerMaybe.isPresent());
+        final Player playerUpdated = _playerMaybe.get();
         assertEquals(playerToUpdate.id, playerUpdated.id);
         assertEquals(playerUpdated.clubId, newClubId);
     }
@@ -72,29 +61,11 @@ public class PlayerHibernateDAOTest {
     @Test
     public void testDelete() throws Exception {
         final int id = 1;
-        inTransaction(() -> {
-            final Optional<Player> playerMaybe = dao.get(id);
-            assertTrue(playerMaybe.isPresent());
-            dao.delete(id);
-            return Optional.empty();
-        });
+        final Optional<Player> playerMaybe = dao.get(id);
+        assertTrue(playerMaybe.isPresent());
+        dao.delete(id);
 
-        inTransaction(() -> {
-            final Optional<Player> deletedPlayerMaybe = dao.get(id);
-            assertFalse(deletedPlayerMaybe.isPresent());
-            return Optional.empty();
-        });
-    }
-
-    private <T> T inTransaction(final Supplier<T> supplier) {
-        final Transaction transaction = sessionFactory.getCurrentSession().beginTransaction();
-        try {
-            T result = supplier.get();
-            transaction.commit();
-            return result;
-        } catch (Exception e) {
-            transaction.rollback();
-            throw e;
-        }
+        final Optional<Player> deletedPlayerMaybe = dao.get(id);
+        assertFalse(deletedPlayerMaybe.isPresent());
     }
 }
